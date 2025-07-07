@@ -1,0 +1,26 @@
+https://geo.ipify.org/api/v2/country,city?apiKey=at_mKWO02AvC87dNSazLKD9pdCKGXPrs&ipAddress=45.125.4.199
+
+api result 
+============
+
+{
+  "ip": "45.125.4.199",
+  "location": {
+    "country": "MM",
+    "region": "Yangon Region",
+    "city": "Kanbe",
+    "lat": 16.83382,
+    "lng": 96.16603,
+    "postalCode": "",
+    "timezone": "+06:30",
+    "geonameId": 1320942
+  },
+  "as": {
+    "asn": 133384,
+    "name": "GTCL-AS-AP",
+    "route": "45.125.4.0/24",
+    "domain": "",
+    "type": ""
+  },
+  "isp": ""
+}
