@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import './App.css'
 import { MapContainer,Marker,TileLayer } from 'react-leaflet'
 import bgMobile from './assets/images/pattern-bg-mobile.png'
@@ -40,7 +40,23 @@ const customIcon = L.icon({
 
 const [loading,setLoading] = useState(false)
 const [error,setError] = useState()
-const [tracker,setTracker] = useState([])
+const [tracker,setTracker] = useState(null)
+const [isopen,setIsOpen] = useState(false)
+const showmap = useRef(null)
+
+const HandleCLickOutside = (e)=>{
+  if(showmap.current && !showmap.current.contains(e.target)){
+    setIsOpen(false)
+  }
+}
+useEffect(() => {
+  document.addEventListener('mousedown', HandleCLickOutside)
+  document.addEventListener('touchstart', HandleCLickOutside)
+  return () => {
+    document.removeEventListener('mousedown', HandleCLickOutside)
+    document.removeEventListener('touchstart', HandleCLickOutside)
+  }
+}, [])
 
 const [ip, setIp] = useState('')
 
@@ -61,6 +77,10 @@ const GetLocation = async (ip) => {
         const data = await response.json()
         setTracker(data)
       }
+  }
+  else{
+    setError('Please enter a valid IP address or domain')
+    setLoading(false)
   }
 }
 
@@ -98,30 +118,42 @@ const GetLocation = async (ip) => {
         null
         }
         {
-          
+          error ?
+            <p className='text-danger fw-bold mt-3'
+            style={{height:'20px'}}>
+              {error}
+            </p>
+            :
+            null
         }
-        {/* <div className="result border-danger border-3"
-          style={{width:'80%'}}
-        >
-          <div className="d-flex flex-column">
-            <div className="text-center pt-2">
-              <h5 className='text-secondary'>IP Address</h5>
-              <p className='fw-bold'>{tracker.ip || iptracker.ip}</p>
+        {
+          tracker && tracker.ip && !loading ?
+             <div className="result border-danger border-3"
+              style={{width:'80%'}}
+            >
+              <div className="d-flex flex-column">
+                <div className="text-center pt-2">
+                  <h5 className='text-secondary'>IP Address</h5>
+                  <p className='fw-bold'>{tracker.ip}</p>
+                </div>
+                <div className="text-center pt-2">
+                  <h5 className='text-secondary'>Location</h5>
+                  <p className='fw-bold'>{tracker.location?.city}, {tracker.location?.region}</p>
+                </div>
+                <div className="text-center pt-2">
+                  <h5 className='text-secondary'>Timezone</h5>
+                  <p className='fw-bold'>UTC {tracker.location?.timezone}</p>
+                </div>
+                <div className="text-center pt-2">
+                  <h5 className='text-secondary '>ISP</h5>
+                  <p className='fw-bold'>{tracker.isp ? tracker.isp : "N/A"}</p>
+                </div>
+              </div>
             </div>
-            <div className="text-center pt-2">
-              <h5 className='text-secondary'>Location</h5>
-              <p className='fw-bold'>{tracker.location?.city || iptracker.location.city}, {tracker.location?.region || iptracker.location.region}</p>
-            </div>
-            <div className="text-center pt-2">
-              <h5 className='text-secondary'>Timezone</h5>
-              <p className='fw-bold'>UTC {tracker.location?.timezone || iptracker.location.timezone}</p>
-            </div>
-            <div className="text-center pt-2">
-              <h5 className='text-secondary '>ISP</h5>
-              <p className='fw-bold'>{tracker.isp ? iptracker.isp : "N/A"}</p>
-            </div>
-          </div>
-        </div> */}
+            :
+            null
+        }
+
 
       </div>
       
@@ -132,8 +164,11 @@ const GetLocation = async (ip) => {
              attribution='<a href="https://www.maptiler.com/copyright/" target="_blank">&copy; MapTiler</a> <a href="https://www.openstreetmap.org/copyright" target="_blank">&copy; OpenStreetMap contributors</a>' 
              url='https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key=naK2uFFuBtzbU3Eri7t3'
              />
-            <Marker icon={customIcon} position={geocode} />
-        </MapContainer>
+             {
+              tracker && tracker.location &&
+              <Marker position={[tracker.location.lat, tracker.location.lng]} icon={customIcon}>
+             </Marker>}
+          </MapContainer>
       </div>
 
     </section>
