@@ -1,8 +1,3 @@
-https://geo.ipify.org/api/v2/country,city?apiKey=at_mKWO02AvC87dNSazLKD9pdCKGXPrs&ipAddress=45.125.4.199
-
-api result 
-============
-
 {
   "ip": "45.125.4.199",
   "location": {
