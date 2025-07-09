@@ -61,6 +61,9 @@
   .header{
     height: 30vh !important;
   }
+  .map{
+    height: 70vh !important;
+  }
 }
 @media(min-width:1024px){
   .search{
