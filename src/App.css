@@ -58,6 +58,9 @@
     justify-content: space-evenly;
     padding: 2rem 2rem;
   }
+  .header{
+    height: 30vh !important;
+  }
 }
 @media(min-width:1024px){
   .search{
