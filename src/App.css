@@ -41,3 +41,38 @@
   top: 80%;
   z-index: 1000;
 }
+.disabled {
+  pointer-events: none;       /* disable mouse/touch interaction */
+  opacity: 0.5;               /* make it look faded */
+  cursor: not-allowed !important;        /* change cursor to forbidden */
+  user-select: none;          /* prevent text selection */
+}
+@media(min-width:700px){
+  .search{
+    width: 70% !important;
+  }
+}
+@media(min-width:900px){
+  .result>div:first-child{
+    flex-direction: row !important;
+    justify-content: space-evenly;
+    padding: 2rem 2rem;
+  }
+}
+@media(min-width:1024px){
+  .search{
+    width: 55% !important;
+  }
+  .result{
+    width: 60% !important;
+  }
+}
+@media(min-width:1200px){
+  .search{
+    width: 40% !important;
+  }
+    .result{
+    width: 40% !important;
+  }
+
+}

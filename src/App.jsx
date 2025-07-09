@@ -1,36 +1,18 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { use, useEffect, useRef, useState } from 'react'
 import './App.css'
 import { MapContainer,Marker,TileLayer } from 'react-leaflet'
 import bgMobile from './assets/images/pattern-bg-mobile.png'
+import bgDesktop from './assets/images/pattern-bg-desktop.png'
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import popup from './/assets/images/icon-location.svg'
+import ChangeMapView from './ChangeMapView';
+
+
 
 function App() {
   
-  const iptracker = {
-  "ip": "45.125.4.199",
-  "location": {
-    "country": "MM",
-    "region": "Yangon Region",
-    "city": "Kanbe",
-    "lat": 16.83382,
-    "lng": 96.16603,
-    "postalCode": "",
-    "timezone": "+06:30",
-    "geonameId": 1320942
-  },
-  "as": {
-    "asn": 133384,
-    "name": "GTCL-AS-AP",
-    "route": "45.125.4.0/24",
-    "domain": "",
-    "type": ""
-  },
-  "isp": ""
-}
 
-const geocode = [16.83382,96.16603]
 
 const customIcon = L.icon({
   iconUrl: popup,
@@ -41,69 +23,81 @@ const customIcon = L.icon({
 const [loading,setLoading] = useState(false)
 const [error,setError] = useState()
 const [tracker,setTracker] = useState(null)
-const [isopen,setIsOpen] = useState(false)
-const showmap = useRef(null)
-
-const HandleCLickOutside = (e)=>{
-  if(showmap.current && !showmap.current.contains(e.target)){
-    setIsOpen(false)
-  }
-}
-useEffect(() => {
-  document.addEventListener('mousedown', HandleCLickOutside)
-  document.addEventListener('touchstart', HandleCLickOutside)
-  return () => {
-    document.removeEventListener('mousedown', HandleCLickOutside)
-    document.removeEventListener('touchstart', HandleCLickOutside)
-  }
-}, [])
-
+const [geocode,setGeocode] = useState()
+const Popref = useRef(null)
 const [ip, setIp] = useState('')
+const [result,setResult] = useState(true)
+
+useEffect(()=>{
+  const handleClickOutside = (event) => {
+    if(Popref.current && !Popref.current.contains(event.target)){
+      setResult(false)
+    }}
+
+  document.addEventListener('mousedown',handleClickOutside)
+  document.addEventListener('touchstart',handleClickOutside)
+  return  () => {
+    document.removeEventListener('mousedown',handleClickOutside)
+    document.removeEventListener('touchstart',handleClickOutside)
+  }
+},[])
+
 
 
 const GetLocation = async (ip) => {
 
-  const apiURL = `https://geo.ipify.org/api/v2/country,city?apiKey=at_mKWO02AvC87dNSazLKD9pdCKGXPrs&ipAddress=${ip}`
-  setLoading(true)
-  if(ip.length>0){
-      const response = await fetch(apiURL)
-      if(!response.ok){
-        throw new Error('Failed to fetch data')
-        setError('Failed to fetch data')
-      }
-      else{
+      const apiURL = `https://geo.ipify.org/api/v2/country,city?apiKey=at_mKWO02AvC87dNSazLKD9pdCKGXPrs&ipAddress=${ip}`
+      try{
+          setLoading(true)
+          setError('')
+          if(ip && ip.length>0){
+            const response = await fetch(apiURL)
+            if(!response.ok){
+              throw new Error('Failed to fetch data')
+            }
+            const data = await response.json()
+            setTracker(data)
+            setGeocode([data.location.lat, data.location.lng])
+            setResult(true)
+          }
+      }catch(error){
+        setError(error.message || "Something went wrong! Please try again later.")
+    }finally{
         setLoading(false)
-        setError(null)
-        const data = await response.json()
-        setTracker(data)
-      }
-  }
-  else{
-    setError('Please enter a valid IP address or domain')
-    setLoading(false)
-  }
+    }
 }
+const [desktop, setDesktop] = useState(window.innerWidth > 1023);
 
+useEffect(() =>{
+  const handleResize = () => {
+    setDesktop(window.innerWidth > 1024);
+  };
 
+  window.addEventListener('resize', handleResize);
+
+  return () => {
+    window.removeEventListener('resize', handleResize);
+  };
+},[])
 
   return (
 
-    <section className='content border border-danger w-100'>
+    <section className='content w-100'>
       <div className="header border border-primary d-flex flex-column align-items-center justify-content-center text-center"
-      style={{backgroundImage: `url(${bgMobile})`, backgroundSize: 'cover', backgroundPosition: 'center'}}>
+      style={{backgroundImage: `url(${desktop ? bgDesktop : bgMobile})`, backgroundSize: 'cover', backgroundPosition: 'center'}}>
 
         
-        <h1>IP Address Tracker</h1> 
+        <h1 className='text-light fw-bold'>IP Address Tracker</h1> 
 
         <div className="search mt-3 d-flex shadow-lg"
         style={{width: '90%'}}>
             
-            <input type="text" value={ip} onChange={(e)=>setIp(e.target.value)} className='searchBar p-3 border-0'
+            <input type="text" value={ip} onChange={(e)=>setIp(e.target.value)} className='searchBar p-3 border-0' disabled={loading}
             style={{outline: 'none',width:'80%',}}
             placeholder='Search for any IP address or domain'/>
 
-            <i className="icon_btn fa-solid fa-angle-right d-flex align-items-center justify-content-center bg-dark text-light"
-              style={{width: '20%', height: '100%', cursor: 'pointer'}}
+            <i className={`icon_btn fa-solid fa-angle-right d-flex align-items-center justify-content-center bg-dark text-light ${loading ? 'disabled' : ''}`}
+              style={{width: '20%', height: '100%'}}
               onClick={()=>GetLocation(ip)}
             ></i>
         </div>
@@ -127,9 +121,10 @@ const GetLocation = async (ip) => {
             null
         }
         {
-          tracker && tracker.ip && !loading ?
-             <div className="result border-danger border-3"
+          tracker && tracker.ip && result ?
+             <div className="result"
               style={{width:'80%'}}
+              ref={Popref}
             >
               <div className="d-flex flex-column">
                 <div className="text-center pt-2">
@@ -158,16 +153,19 @@ const GetLocation = async (ip) => {
       </div>
       
 
-      <div className="map border border-danger border-2">
-        <MapContainer center={[iptracker.location.lat, iptracker.location.lng]} zoom={13}>  
+      <div className="map">
+        
+        <MapContainer 
+          center={Array.isArray(geocode) && geocode.length === 2 ? geocode : [20, 80]}
+          zoom={13}>  
             <TileLayer
              attribution='<a href="https://www.maptiler.com/copyright/" target="_blank">&copy; MapTiler</a> <a href="https://www.openstreetmap.org/copyright" target="_blank">&copy; OpenStreetMap contributors</a>' 
              url='https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key=naK2uFFuBtzbU3Eri7t3'
              />
-             {
-              tracker && tracker.location &&
-              <Marker position={[tracker.location.lat, tracker.location.lng]} icon={customIcon}>
-             </Marker>}
+             <ChangeMapView coords={geocode} />
+            {Array.isArray(geocode) && geocode.length === 2 &&
+              <Marker position={geocode} icon={customIcon} />
+            }
           </MapContainer>
       </div>
 
